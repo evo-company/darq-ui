@@ -16,10 +16,15 @@ if [ -z "${MESSAGE}" ]; then
   echo "MESSAGE is not set"
   exit 1
 fi
-echo "Releasing ${VERSION}"
+echo "* Releasing version ${VERSION}"
 
-echo "__version__ = \"${VERSION}\"" >src/darq_ui/__init__.py
+VERSION_FILE="src/darq_ui/__init__.py"
+
+echo "__version__ = \"${VERSION}\"" >${VERSION_FILE}
 git add src/darq_ui/__init__.py
+echo "* Commiting new version ${VERSION}" to ${VERSION_FILE}
 git commit -m "Release ${VERSION}"
+echo "* Creating new tag ${VERSION}"
 git tag -a v${VERSION} -m "${MESSAGE}"
+echo "* Pushing tag ${VERSION}"
 git push origin main --tags

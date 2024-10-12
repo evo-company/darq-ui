@@ -37,6 +37,10 @@ dev = ["mypy>=1.11.2", "ruff>=0.6.9"]
 [tool.pdm]
 distribution = true
 
+[tool.pdm.version]
+source = "file"
+path = "src/darq_ui/__init__.py"
+
 [tool.pdm.scripts]
 mypy = "mypy {args:src/darq_ui}"
 ruff = "ruff check {args:src/darq_ui} --fix"
