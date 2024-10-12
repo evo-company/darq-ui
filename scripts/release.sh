@@ -22,4 +22,4 @@ echo "__version__ = \"${VERSION}\"" >src/darq_ui/__init__.py
 git add src/darq_ui/__init__.py
 git commit -m "Release ${VERSION}"
 git tag -a v${VERSION} -m "${MESSAGE}"
-git push origin master --tags
+git push origin main --tags
