@@ -1,19 +1,77 @@
 [project]
 name = "darq-ui"
-version = "0.1.0"
+dynamic = ["version"]
 description = "A UI for darq"
-authors = [
-    {name = "m.kindritskiy", email = "kindritskiy.m@gmail.com"},
-]
-dependencies = []
+authors = [{ name = "m.kindritskiy", email = "kindritskiy.m@gmail.com" }]
+dependencies = ["darq>=0.11.2"]
 requires-python = ">=3.10"
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "BSD-3-Clause" }
+
+classifiers = [
+  'Development Status :: 5 - Production/Stable',
+  'Intended Audience :: Developers',
+  'License :: OSI Approved :: BSD License',
+  'Operating System :: OS Independent',
+  'Programming Language :: Python',
+  'Programming Language :: Python :: 3.10',
+  'Programming Language :: Python :: 3.11',
+  'Programming Language :: Python :: 3.12',
+  'Programming Language :: Python :: 3 :: Only',
+  'Topic :: Software Development :: Libraries :: Python Modules',
+]
+
+[project.urls]
+Repository = "https://github.com/evo-company/darq_ui"
+Homepage = "https://github.com/evo-company/darq_ui"
 
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
+[project.optional-dependencies]
+fastapi = ["fastapi>=0.115.0"]
+aiohttp = ["aiohttp>=3.10.10"]
+dev = ["mypy>=1.11.2", "ruff>=0.6.9"]
 
 [tool.pdm]
 distribution = true
+
+[tool.pdm.scripts]
+mypy = "mypy {args:src/darq_ui}"
+ruff = "ruff check {args:src/darq_ui} --fix"
+ruff-fmt = "ruff format {args:src/darq_ui}"
+check = { composite = ["ruff-fmt", "ruff", "mypy"] }
+
+[tool.mypy]
+files = ["src/darq_ui"]
+python_version = "3.10"
+check_untyped_defs = true
+disallow_untyped_defs = true
+follow_imports = "silent"
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+ignore_errors = false
+
+[tool.ruff]
+exclude = [
+  ".eggs",
+  ".git",
+  ".mypy_cache",
+  ".pytype",
+  ".ruff_cache",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+  ".venv",
+  "__pycache__",
+]
+line-length = 80
+target-version = "py310"

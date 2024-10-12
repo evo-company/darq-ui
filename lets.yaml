@@ -1,0 +1,27 @@
+shell: bash
+
+commands:
+  build-ui:
+    description: Builds static in production mode and copy files to src/darq_ui/static
+    work_dir: client
+    cmd: npm run build
+
+  build-ui-watch:
+    description: Build and watch static in development mode and copy it to src/darq_ui/static dir
+    work_dir: client
+    cmd: npm run build-dev-watch
+
+  release:
+    description: |
+      Update version in src/darq_ui/__init__.py
+      Create new annotated tag
+      Push changes to remote
+    options: |
+      Usage: lets release <version> --message=<message>
+      Options:
+        <version>       Set version
+        --message=<message>, -m    Release message
+      Example:
+        lets release 0.7.1 --message="Added federation"
+        lets release 0.7.2rc1 --message="Added feature"
+    cmd: ./scripts/release.sh ${LETSOPT_VERSION} "${LETSOPT_MESSAGE}"

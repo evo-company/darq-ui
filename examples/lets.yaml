@@ -1,0 +1,10 @@
+shell: bash
+
+commands:
+  run-fastapi:
+    description: Run example fastapi server
+    cmd: pdm run fastapi-server
+
+  run-aiohttp:
+    description: Run example aiohttp server
+    cmd: pdm run aiohttp-server
