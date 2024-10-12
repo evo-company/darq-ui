@@ -1,4 +1,5 @@
 import json
+import logging
 
 from typing import Generic, TypeVar
 from dataclasses import dataclass
@@ -8,6 +9,7 @@ from darq.app import Darq
 from darq_ui.darq import Task, TaskStatus
 from darq_ui.darq import DarqHelper
 
+log = logging.getLogger(__name__)
 
 P = TypeVar("P", dict, BaseModel)
 
@@ -20,27 +22,23 @@ class Success(BaseModel, Generic[P]):
 
 class Failure(BaseModel, Generic[P]):
     payload: P | None = None
-    error: str
+    error: str | None = None
     success: bool = False
 
 
 def ok_response(
-    message: str | None = None,
-    payload: dict | None = None,
+    payload: P | None = None,
 ) -> Success:
     return Success(
-        message=message,
-        errors=None,
+        error=None,
         payload=payload,
     )
 
 
 def error_response(
-    message: str | None = None,
     error: str | None = None,
 ) -> Failure:
     return Failure(
-        message=message,
         error=error,
         payload=None,
     )
@@ -127,13 +125,12 @@ async def run_task(
             error=f'Task with name "{task_name}" does not exist!',
         )
 
-    # TODO: should we enable logging ?
-    # log.info(
-    #     "Run task %s with args %s and kwargs %s",
-    #     task.task_name,
-    #     t_args,
-    #     t_kwargs,
-    # )
+    log.debug(
+        "Run task %s with args %s and kwargs %s",
+        task_name,
+        t_args,
+        t_kwargs,
+    )
 
     job = await darq_task.delay(*t_args, **t_kwargs)
 

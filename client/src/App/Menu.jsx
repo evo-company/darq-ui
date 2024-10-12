@@ -1,10 +1,7 @@
 import { Menu as AntdMenu } from "antd";
 import { Link } from "react-router-dom";
 
-import {
-  ControlOutlined,
-} from "@ant-design/icons";
-
+import { ControlOutlined } from "@ant-design/icons";
 
 function getItem(label, key, icon, children, type) {
   return {
@@ -22,9 +19,7 @@ export const Menu = () => {
     <AntdMenu
       mode="inline"
       theme="dark"
-      items={[
-        getItem(<Link to="/">Tasks</Link>, "tasks", <ControlOutlined />),
-      ]}
+      items={[getItem(<Link to="/">Tasks</Link>, "tasks", <ControlOutlined />)]}
     />
   );
 };

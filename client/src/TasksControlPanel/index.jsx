@@ -15,7 +15,7 @@ import {
   ReloadOutlined,
 } from "@ant-design/icons";
 import { useSearchParams } from "react-router-dom";
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from "@tanstack/react-query";
 
 import {
   RemoveTaskFromDroplistButton,
@@ -45,30 +45,42 @@ const StatusDescription = () => (
       },
     ].map((item) => (
       <p key={item.status}>
-        <Tag color={TASK_STATUSES_COLOR_SCHEME[item.status]}>
-          {item.status}
-        </Tag>
+        <Tag color={TASK_STATUSES_COLOR_SCHEME[item.status]}>{item.status}</Tag>
         {item.description}
       </p>
     ))}
   </div>
 );
 
-const formatSignature = (sig) => sig.slice(1, sig.length - 1).split(",").map(s => s.trim()).join("\n");
-const formatDoc = (doc) => doc.trim().split("\n").map(s => s.trim()).join("\n");
+const formatSignature = (sig) =>
+  sig
+    .slice(1, sig.length - 1)
+    .split(",")
+    .map((s) => s.trim())
+    .join("\n");
+const formatDoc = (doc) =>
+  doc
+    .trim()
+    .split("\n")
+    .map((s) => s.trim())
+    .join("\n");
 
 const TaskInfo = ({ task }) => (
   <Space direction="vertical">
-    <div>Status: {task.status || 'N/A'}</div>
+    <div>Status: {task.status || "N/A"}</div>
     <div>
       Signature: <pre>{formatSignature(task.signature)}</pre>
     </div>
-    <div>Doc: <pre>{formatDoc(task.docstring)}</pre></div>
-    {task.status === TASK_STATUS.DROPPED && <div>Dropped reason: {task.dropped_reason || "Not specified"}</div>}
+    <div>
+      Doc: <pre>{formatDoc(task.docstring)}</pre>
+    </div>
+    {task.status === TASK_STATUS.DROPPED && (
+      <div>Dropped reason: {task.dropped_reason || "Not specified"}</div>
+    )}
     <div>
       <LogsLink taskName={task.name} />
     </div>
-  </Space >
+  </Space>
 );
 
 const TASKNAME_PLACEHOLDER = "${taskName}";
@@ -77,11 +89,7 @@ const LogsLink = ({ taskName }) => {
   const config = getConfig();
   const logsUrl = config.logs_url?.replaceAll(TASKNAME_PLACEHOLDER, taskName);
   return (
-    <a
-      target="_blank"
-      rel="noreferrer"
-      href={logsUrl}
-    >
+    <a target="_blank" rel="noreferrer" href={logsUrl}>
       <Space>
         <LinkOutlined /> Logs
       </Space>
@@ -147,14 +155,14 @@ const TasksTable = ({ tasks, loading, refetch }) => {
 
               if (task.status === TASK_STATUS.RUNNING) {
                 buttons.push(
-                  <DropTaskButton key="drop" taskName={task.name} />
+                  <DropTaskButton key="drop" taskName={task.name} />,
                 );
               } else if (task.status === TASK_STATUS.DROPPED) {
                 buttons.push(
                   <RemoveTaskFromDroplistButton
                     key="removeTaskFromDroplist"
                     taskName={task.name}
-                  />
+                  />,
                 );
               } else if (task.status === null) {
                 buttons.push(<RunTaskButton key="run" task={task} />);
@@ -182,13 +190,14 @@ export const TasksControlPanel = () => {
   const [searchTerm, setSearchTerm] = useState(defaultSearch);
 
   const { isPending, isError, data, error, refetch } = useQuery({
-    queryKey: ['tasks'], queryFn: () => getCall('/api/tasks')
+    queryKey: ["tasks"],
+    queryFn: () => getCall("/api/tasks"),
   });
 
   const loading = isPending;
 
   if (isError) {
-    log.error("Error while fetching tasks", error);
+    console.error("Error while fetching tasks", error);
   }
 
   const tasks = filterTasks(data?.tasks || [], searchTerm);

@@ -1,6 +1,7 @@
 import pkgutil
 import pathlib
 import json
+from typing import Any, Callable, Coroutine
 
 from darq.app import Darq
 
@@ -17,6 +18,7 @@ from darq_ui.handlers import (
     run_task,
     error_response,
     ok_response,
+    Success,
     Failure,
     drop_task,
     remove_task_from_droplist,
@@ -32,7 +34,7 @@ def get_darq_app(request: web.Request) -> Darq:
     return request.app[DARQ_APP]
 
 
-async def get_json(request):
+async def get_json(request: web.Request) -> dict:
     if request.content_type == "application/json":
         try:
             return await request.json()
@@ -41,7 +43,9 @@ async def get_json(request):
     raise HTTPNotAcceptable(text="invalid json")
 
 
-def response_adapter(func) -> web.Response:
+def response_adapter(
+    func: Callable,
+) -> Callable[[web.Request], Coroutine[Any, Any, web.Response]]:
     """Allows to return Success or Failure objects from handlers"""
 
     async def wrapper(request: web.Request) -> web.Response:
@@ -72,7 +76,7 @@ async def index_handler(request: web.Request) -> web.Response:
 
 
 @response_adapter
-async def get_tasks_handler(request: web.Request) -> web.Response:
+async def get_tasks_handler(request: web.Request) -> TasksResponse:
     darq_app = get_darq_app(request)
     tasks = await get_tasks(darq_app)
 
@@ -91,7 +95,9 @@ async def get_tasks_handler(request: web.Request) -> web.Response:
 
 
 @response_adapter
-async def run_task_handler(request: web.Request) -> web.Response:
+async def run_task_handler(
+    request: web.Request,
+) -> Success | Failure:
     darq_app = get_darq_app(request)
     data = await get_json(request)
 
@@ -128,7 +134,7 @@ async def run_task_handler(request: web.Request) -> web.Response:
 
 
 @response_adapter
-async def drop_task_handler(request: web.Request) -> web.Response:
+async def drop_task_handler(request: web.Request) -> Success | Failure:
     darq_app = get_darq_app(request)
     data = await get_json(request)
 
@@ -153,7 +159,7 @@ async def drop_task_handler(request: web.Request) -> web.Response:
 @response_adapter
 async def remove_task_from_droplist_handler(
     request: web.Request,
-) -> web.Response:
+) -> Success | Failure:
     darq_app = get_darq_app(request)
     data = await get_json(request)
 

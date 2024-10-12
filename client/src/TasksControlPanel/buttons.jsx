@@ -10,10 +10,7 @@ import {
 } from "antd";
 import isPlainObject from "lodash/isPlainObject";
 import { useEffect, useState } from "react";
-import {
-  useMutation,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { postCall } from "../http";
 
@@ -198,7 +195,7 @@ const InputArgsView = ({ task, onClick, kwargs, setKwargs }) => {
           placeholder={arg.defaultValue}
           onChange={(e) => onSetLocalKwargs(arg, e.target.value)}
         />
-      </Space>
+      </Space>,
     );
   });
 
@@ -225,216 +222,212 @@ const ARGS_TABS = {
 };
 
 const ArgsView = ({ task, onClick, args, kwargs, setArgs, setKwargs }) => {
-  const [argsTab, setArgsTab] = useState(ARGS_TABS.JSON);
-  return (
-    <Tabs
-      defaultActiveKey={ARGS_TABS.JSON}
-      activeKey={argsTab}
-      onChange={(key) => setArgsTab(key)}
-      items={[
-        {
-          key: ARGS_TABS.JSON,
-          label: "JSON",
-          children: (
-            <JsonArgsView
-              task={task}
-              onClick={onClick}
-              setArgs={setArgs}
-              setKwargs={setKwargs}
-            />
-          ),
-        },
-        {
-          key: ARGS_TABS.INPUT,
-          label: "INPUT (experimental)",
-          children: (
-            <InputArgsView
-              task={task}
-              onClick={onClick}
-              kwargs={kwargs}
-              setKwargs={setKwargs}
-            />
-          ),
-        },
-      ]}
-    />
-  );
-};
-
-export const RunTaskButton = ({ task }) => {
-  const [visible, setVisible] = useState(false);
-  const [argsRaw, setArgsRaw] = useState("");
-  const [kwargsRaw, setKwargsRaw] = useState("");
-
-  const queryClient = useQueryClient()
-
-  const { mutate, isPending } = useMutation({
-    mutationFn: (data) => postCall('/api/tasks/run', data),
-    onSuccess: (data, variables) => {
-      if (data.error !== null) {
-        message.error(data.error);
-      } else {
-        message.success(`Task started: "${variables.task_name}"`);
-      }
-
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
-    },
-    onError: (error, variables, context) => {
-      console.log('error', error, variables, context)
-    },
-  });
-
-  const validateAndRun = () => {
-    const args = validateArgs(argsRaw);
-    if (args === null) {
-      return;
-    }
-
-    const kwargs = validateKwargs(kwargsRaw);
-    if (kwargs === null) {
-      return;
-    }
-
-    mutate({
-      task_name: task.name,
-      task_args: args ? JSON.stringify(args) : null,
-      task_kwargs: kwargs ? JSON.stringify(kwargs) : null,
-    });
-    setVisible(false);
-  };
-
-  return (
-    <Popover
-      content={
-        <ArgsView
-          task={task}
-          onClick={validateAndRun}
-          args={argsRaw}
-          kwargs={kwargsRaw}
-          setArgs={setArgsRaw}
-          setKwargs={setKwargsRaw}
-        />
-      }
-      placement="bottomLeft"
-      title="Enter args"
-      trigger="click"
-      open={visible}
-      onOpenChange={(visible) => {
-        setVisible(visible);
-      }}
-    >
-      <Button loading={isPending} type="primary">
-        Run
-      </Button>
-    </Popover>
-  );
-};
-
-const DropReasonView = ({ onClick, setReason }) => {
-  return (
-    <Space direction="vertical" style={{ width: "390px" }}>
-      <Input
-        label="Reason"
-        placeholder="(example) Bug in task"
-        onChange={(e) => setReason(e.target.value)}
+  
+    const [argsTab, setArgsTab] = useState(ARGS_TABS.JSON);
+    return (
+      <Tabs
+        defaultActiveKey={ARGS_TABS.JSON}
+        activeKey={argsTab}
+        onChange={(key) => setArgsTab(key)}
+        items={[
+          {
+            key: ARGS_TABS.JSON,
+            label: "JSON",
+            children: (
+              <JsonArgsView
+                task={task}
+                onClick={onClick}
+                setArgs={setArgs}
+                setKwargs={setKwargs}
+              />
+            ),
+          },
+          {
+            key: ARGS_TABS.INPUT,
+            label: "INPUT (experimental)",
+            children: (
+              <InputArgsView
+                task={task}
+                onClick={onClick}
+                kwargs={kwargs}
+                setKwargs={setKwargs}
+              />
+            ),
+          },
+        ]}
       />
-
-      <Button onClick={onClick} danger type="primary">
-        Drop
-      </Button>
-    </Space>
-  );
-};
-
-export const DropTaskButton = ({ taskName }) => {
-  const [visible, setVisible] = useState(false);
-  const [reason, setReason] = useState("");
-
-  const queryClient = useQueryClient()
-
-  const { mutate, isPending } = useMutation({
-    mutationFn: (data) => postCall('/api/tasks/droplist/add', data),
-    onSuccess: (data, variables) => {
-      if (data.error !== null) {
-        message.error(data.error);
-      } else {
-        message.success(`Task added to drop list: "${variables.task_name}"`);
-      }
-
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
-    },
-    onError: (error, variables, context) => {
-      console.log('error', error, variables, context)
-    },
-  });
-
-
-  const validateAndDrop = () => {
-    if (reason === null || reason === "") {
-      message.error("Reason is required");
-      return;
-    }
-
-    mutate({ task_name: taskName, reason });
-    setVisible(false);
+    );
   };
 
-  return (
-    <Tooltip title="Adds task to droplist. Task can be run again only when removed from droplist manually">
+  export const RunTaskButton = ({ task }) => {
+    const [visible, setVisible] = useState(false);
+    const [argsRaw, setArgsRaw] = useState("");
+    const [kwargsRaw, setKwargsRaw] = useState("");
+
+    const queryClient = useQueryClient();
+
+    const { mutate, isPending } = useMutation({
+      mutationFn: (data) => postCall("/api/tasks/run", data),
+      onSuccess: (data, variables) => {
+        if (data.error !== null) {
+          message.error(data.error);
+        } else {
+          message.success(`Task started: "${variables.task_name}"`);
+        }
+
+        // Invalidate and refetch
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      },
+      onError: (error, variables, context) => {
+        console.log("error", error, variables, context);
+      },
+    });
+
+    const validateAndRun = () => {
+      const args = validateArgs(argsRaw);
+      if (args === null) {
+        return;
+      }
+
+      const kwargs = validateKwargs(kwargsRaw);
+      if (kwargs === null) {
+        return;
+      }
+
+      mutate({
+        task_name: task.name,
+        task_args: args ? JSON.stringify(args) : null,
+        task_kwargs: kwargs ? JSON.stringify(kwargs) : null,
+      });
+      setVisible(false);
+    };
+
+    return (
       <Popover
         content={
-          <DropReasonView onClick={validateAndDrop} setReason={setReason} />
+          <ArgsView
+            task={task}
+            onClick={validateAndRun}
+            args={argsRaw}
+            kwargs={kwargsRaw}
+            setArgs={setArgsRaw}
+            setKwargs={setKwargsRaw}
+          />
         }
         placement="bottomLeft"
-        title="Drop task reason"
+        title="Enter args"
         trigger="click"
         open={visible}
         onOpenChange={(visible) => {
           setVisible(visible);
         }}
       >
-        <Button
-          type="primary"
-          danger
-          loading={isPending}
-        >
-          Drop
+        <Button loading={isPending} type="primary">
+          Run
         </Button>
       </Popover>
-    </Tooltip>
-  );
-};
+    );
+  };
 
-export const RemoveTaskFromDroplistButton = ({ taskName }) => {
-  const queryClient = useQueryClient()
+  const DropReasonView = ({ onClick, setReason }) => {
+    return (
+      <Space direction="vertical" style={{ width: "390px" }}>
+        <Input
+          label="Reason"
+          placeholder="(example) Bug in task"
+          onChange={(e) => setReason(e.target.value)}
+        />
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: (data) => postCall('/api/tasks/droplist/remove', data),
-    onSuccess: (data, variables) => {
-      if (data.error !== null) {
-        message.error(data.error);
-      } else {
-        message.success(`Task can be run again: "${variables.task_name}"`);
+        <Button onClick={onClick} danger type="primary">
+          Drop
+        </Button>
+      </Space>
+    );
+  };
+
+  export const DropTaskButton = ({ taskName }) => {
+    const [visible, setVisible] = useState(false);
+    const [reason, setReason] = useState("");
+
+    const queryClient = useQueryClient();
+
+    const { mutate, isPending } = useMutation({
+      mutationFn: (data) => postCall("/api/tasks/droplist/add", data),
+      onSuccess: (data, variables) => {
+        if (data.error !== null) {
+          message.error(data.error);
+        } else {
+          message.success(`Task added to drop list: "${variables.task_name}"`);
+        }
+
+        // Invalidate and refetch
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      },
+      onError: (error, variables, context) => {
+        console.log("error", error, variables, context);
+      },
+    });
+
+    const validateAndDrop = () => {
+      if (reason === null || reason === "") {
+        message.error("Reason is required");
+        return;
       }
 
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ['tasks'] })
-    },
-    onError: (error, variables, context) => {
-      console.log('error', error, variables, context)
-    },
-  });
+      mutate({ task_name: taskName, reason });
+      setVisible(false);
+    };
 
-  return (
-    <Button
-      type="primary"
-      danger
-      loading={isPending}
-      onClick={() => mutate({ task_name: taskName })}
-    >
-      Remove from droplist
-    </Button>
-  );
-};
+    return (
+      <Tooltip title="Adds task to droplist. Task can be run again only when removed from droplist manually">
+        <Popover
+          content={
+            <DropReasonView onClick={validateAndDrop} setReason={setReason} />
+          }
+          placement="bottomLeft"
+          title="Drop task reason"
+          trigger="click"
+          open={visible}
+          onOpenChange={(visible) => {
+            setVisible(visible);
+          }}
+        >
+          <Button type="primary" danger loading={isPending}>
+            Drop
+          </Button>
+        </Popover>
+      </Tooltip>
+    );
+  };
+
+  export const RemoveTaskFromDroplistButton = ({ taskName }) => {
+    const queryClient = useQueryClient();
+
+    const { mutate, isPending } = useMutation({
+      mutationFn: (data) => postCall("/api/tasks/droplist/remove", data),
+      onSuccess: (data, variables) => {
+        if (data.error !== null) {
+          message.error(data.error);
+        } else {
+          message.success(`Task can be run again: "${variables.task_name}"`);
+        }
+
+        // Invalidate and refetch
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      },
+      onError: (error, variables, context) => {
+        console.log("error", error, variables, context);
+      },
+    });
+
+    return (
+      <Button
+        type="primary"
+        danger
+        loading={isPending}
+        onClick={() => mutate({ task_name: taskName })}
+      >
+        Remove from droplist
+      </Button>
+    );
+  };

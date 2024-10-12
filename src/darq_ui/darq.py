@@ -51,13 +51,16 @@ class DarqHelper:
 
         Returns a dictionary where key is task name and value is reason why task
         """
+        assert self.darq_app.redis_pool
         raw_drop_tasks = await self.darq_app.redis_pool.hgetall(DROP_TASKS_KEY)
         return dict(raw_drop_tasks.items())
 
     def get_all_registered_jobs(self) -> list[str]:
+        assert self.darq_app.redis_pool
         return sorted(self.darq_app.registry.keys())
 
     def get_darq_job_by_name(self, job_name: str) -> WorkerTask | None:
+        assert self.darq_app.redis_pool
         return self.darq_app.registry.get(job_name)
 
     def get_job_coro_by_name(self, job_name: str) -> DarqTask | None:
@@ -87,9 +90,10 @@ class DarqHelper:
         return task_info
 
     async def get_darq_tasks_for_admin(self) -> list[Task]:
+        assert self.darq_app.redis_pool
         job_names = self.get_all_registered_jobs()
 
-        queued_jobs = []
+        queued_jobs: list = []
 
         try:
             queued_jobs = await self.darq_app.redis_pool.queued_jobs()
@@ -128,6 +132,7 @@ class DarqHelper:
         return tasks
 
     async def is_task_in_droplist(self, task_name: str) -> bool:
+        assert self.darq_app.redis_pool
         return await self.darq_app.redis_pool.hexists(DROP_TASKS_KEY, task_name)
 
     async def drop_add(
@@ -141,6 +146,7 @@ class DarqHelper:
         on tasks that are not started yet or that are working in batches
         and running itselves.
         """
+        assert self.darq_app.redis_pool
         add_date = datetime.now().strftime("%d.%m.%y %H:%M")
         reason = f"added to drop list by '{user}' on '{add_date}' because of '{reason}'"
         await self.darq_app.redis_pool.hset(DROP_TASKS_KEY, task_name, reason)
@@ -148,4 +154,5 @@ class DarqHelper:
     async def drop_remove(self, task_name: str) -> None:
         """Remove task from drop list. After this operation a task can be
         started again."""
+        assert self.darq_app.redis_pool
         await self.darq_app.redis_pool.hdel(DROP_TASKS_KEY, task_name)

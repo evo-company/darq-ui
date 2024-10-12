@@ -11,7 +11,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.8"
+          python-version: "3.10"
       - name: Check prerelease
         id: check_version
         run: |
@@ -38,6 +38,6 @@ jobs:
           draft: false
           prerelease: ${{ steps.check_version.outputs.PRERELEASE }}
       - name: Set up PDM
-        run: pip install pdm==2.10.4
+        run: pip install pdm==2.19.1
       - name: Publish package distributions to PyPI
         run: pdm publish -u "__token__" -P ${{ secrets.TWINE_PASSWORD }}

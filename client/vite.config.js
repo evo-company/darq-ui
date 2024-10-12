@@ -12,17 +12,13 @@ export default defineConfig({
       "/api": "http://localhost:3000",
     },
   },
-  // base: process.env.NODE_ENV === "production" ? "/__dynamic_base__/" : "/",
   base: "/__dynamic_base__/",
-  // base: process.env.NODE_ENV === "production" ? "/__dynamic_base__/" : "/",
   plugins: [
     react(),
     splitVendorChunkPlugin(),
     dynamicBase({
       publicPath: 'window.__dynamic_base__',
-      // assetsDir: 'static',
       transformIndexHtml: true,
-      // legacy: false
     }),
     vitePluginImp({
       optimize: true,
