@@ -1,0 +1,13 @@
+shell: bash
+
+commands:
+  build-ui:
+    description: Builds static in production mode and copy files to src/darq_ui/static
+    work_dir: client
+    cmd: npm run build
+
+  build-ui-watch:
+    description: Build and watch static in development mode and copy it to src/darq_ui/static dir
+    work_dir: client
+    cmd: npm run build-dev-watch
+

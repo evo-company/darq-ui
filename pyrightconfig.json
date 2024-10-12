@@ -1,0 +1,28 @@
+{
+  "pythonVersion": "3.10",
+  "include": [
+    "examples",
+    "src/darq_ui"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    ".venv"
+  ],
+  "venvPath": ".",
+  "venv": ".venv",
+  "executionEnvironments": [
+    {
+      "root": "examples",
+      "extraPaths": [
+        "examples"
+      ]
+    },
+    {
+      "root": "src",
+      "extraPaths": [
+        "src/darq_ui"
+      ]
+    }
+  ]
+}
