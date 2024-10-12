@@ -6,6 +6,14 @@
 pip install darq-ui
 ```
 
+Or with extra dependencies:
+
+```bash
+pip install darq-ui[aiohttp]
+# or
+pip install darq-ui[fastapi]
+```
+
 ## Integration
 
 Use `setup` function like this `from darq_ui.integration.<framework> import setup` to integrate darq-ui with your application.
@@ -69,3 +77,39 @@ lets run-fastapi # or run-aiohttp
 * [FastAPI example](examples/fastapi_server.py)
 * [Aiohttp example](examples/aiohttp_server.py)
 
+## Development
+
+* pdm package manager - https://pdm.fming.dev/
+* lets task runner https://lets-cli.org
+
+### Run linters, formatters and other checks
+
+```bash
+$ pdm run ruff
+$ pdm run ruff-fmt
+$ pdm run mypy
+```
+
+### Changelog
+
+When developing, add notes to CHANGELOG.md `Unreleased` section.
+
+After we decided to release new version, we must rename `Unreleased` to new tag version and add new `Unreleased` section.
+
+## Publishing
+
+`darq-ui` supports semver versioning.
+
+* Update the version number in the `src/darq_ui/__init__.py` file.
+* Update the changelog in the `CHANGELOG.md` file.
+* Merge changes into master.
+* Create a tag `git tag -a v0.0.X -m 'your tag message'`.
+
+All of the above steps can be done with the following command:
+```bash
+lets release <version> -m 'your release message'
+```
+
+This command will update the version in the `__init__.py` file, update the changelog, create a tag and push it to the repository.
+
+When new tag pushed, new release action on GitHub will publish new package to pypi.
