@@ -62,6 +62,10 @@ https://kibana.corp/app/discover#/?_g=(time:(from:now-15m,to:now))&_a=(filters:!
 In this url, `task_name` is a field name and `${taskName}` will be replaced with the task name value. (This is just an example. You
 may need to adjust it according to your kibana configuration.)
 
+## Securing the UI
+
+Since darq-ui is a part of your application, and can run any task, you should consider protecting it with authorization middleware or firewall.
+
 ## Examples
 
 In order to run examples you need to install the dependencies:
