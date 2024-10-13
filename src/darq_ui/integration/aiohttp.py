@@ -1,6 +1,5 @@
-import pkgutil
+import dataclasses
 import pathlib
-import json
 from typing import Any, Callable, Coroutine
 
 from darq.app import Darq
@@ -12,8 +11,9 @@ from json import JSONDecodeError
 from aiohttp.web_exceptions import HTTPNotAcceptable
 from pydantic import BaseModel
 
-from darq_ui.utils import DARQ_APP, DARQ_UI_CONFIG, DarqUIConfig
+from darq_ui.utils import DARQ_APP, DARQ_UI_CONFIG, DarqUIConfig, join_url
 from darq_ui.handlers import (
+    get_index_page,
     get_tasks,
     run_task,
     error_response,
@@ -22,7 +22,6 @@ from darq_ui.handlers import (
     Failure,
     drop_task,
     remove_task_from_droplist,
-    join_url,
     ErrorResult,
     TaskBody,
     TasksResponse,
@@ -60,19 +59,21 @@ def response_adapter(
 
 
 async def index_handler(request: web.Request) -> web.Response:
-    page = pkgutil.get_data("darq_ui", "static/index.html")
-
-    if not page:
+    ui_config: DarqUIConfig = request.app[DARQ_UI_CONFIG]
+    content = get_index_page(ui_config)
+    if not content:
         return web.Response(text="not found", status=404)
 
-    ui_config: DarqUIConfig = request.app[DARQ_UI_CONFIG]
-    base_static_path = join_url(ui_config.base_path, "/static")
-    page = page.replace(
-        b"{{CONFIG}}", json.dumps(ui_config.to_dict()).encode("utf-8")
-    )
-    page = page.replace(b"{{DYNAMIC_BASE}}", base_static_path.encode("utf-8"))
+    return web.Response(body=content, content_type="text/html")
 
-    return web.Response(body=page.decode("utf-8"), content_type="text/html")
+
+async def embed_handler(request: web.Request) -> web.Response:
+    ui_config: DarqUIConfig = request.app[DARQ_UI_CONFIG]
+    content = get_index_page(dataclasses.replace(ui_config, embed=True))
+    if not content:
+        return web.Response(text="not found", status=404)
+
+    return web.Response(body=content, content_type="text/html")
 
 
 @response_adapter
@@ -181,8 +182,23 @@ def setup(
     darq: Darq,
     base_path: str = "/darq",
     logs_url: str | None = None,
+    web_ui: bool = True,
+    embed: bool = False,
 ) -> None:
-    app.router.add_get(base_path, index_handler)
+    """Setup Darq UI in aiohttp application.
+
+    :param app: FastAPI application
+    :param darq: Darq instance
+    :param base_path: base path for Darq UI
+    :param logs_url: URL to logs
+    :param web_ui: enable web UI endpoint
+    :param embed: enable /embed endpoint (for iframes)
+    """
+    if web_ui:
+        app.router.add_get(base_path, index_handler)
+    if embed:
+        app.router.add_get(join_url(base_path, "/embed"), embed_handler)
+
     app.router.add_get(join_url(base_path, "/api/tasks"), get_tasks_handler)
     app.router.add_post(join_url(base_path, "/api/tasks/run"), run_task_handler)
     app.router.add_post(
@@ -193,11 +209,11 @@ def setup(
         remove_task_from_droplist_handler,
     )
 
-    here = pathlib.Path(__file__).parents[1]
-
-    app.router.add_routes(
-        [web.static(join_url(base_path, "/static"), here / "static")]
-    )
+    if web_ui or embed:
+        here = pathlib.Path(__file__).parents[1]
+        app.router.add_routes(
+            [web.static(join_url(base_path, "/static"), here / "static")]
+        )
 
     app[DARQ_APP] = darq
     app[DARQ_UI_CONFIG] = DarqUIConfig(base_path=base_path, logs_url=logs_url)

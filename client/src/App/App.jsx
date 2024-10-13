@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import "./App.css";
 
-import { Base } from "./Base.jsx";
+import { Base, BaseEmbed } from "./Base.jsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,6 +18,17 @@ export function App() {
     <HashRouter>
       <QueryClientProvider client={queryClient}>
         <Base />
+      </QueryClientProvider>
+    </HashRouter>
+  );
+}
+
+// TODO: search params does not work in iframe
+export function AppEmbed() {
+  return (
+    <HashRouter>
+      <QueryClientProvider client={queryClient}>
+        <BaseEmbed />
       </QueryClientProvider>
     </HashRouter>
   );

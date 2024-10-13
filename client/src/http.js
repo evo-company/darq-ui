@@ -3,14 +3,25 @@ import { getConfig } from "./config";
 /**
  * Get url with proper base
  * Example: path = "/v1/health", base_path = "/api", return "/api/v1/health"
- */
+ *
+ * There are many cases our client can be served:
+ * 1. At root, base_path = "/"
+ * 2. At root and subpath, /admin/darq
+ * 3. At prefix, /app/admin/darq where /admin/darq is the base_path and the /app is the prefix added by the reverse proxy
+ * 4. Embed mode (in iframe)
+ **/
 export function getApiUrl(path) {
   let basePath = getConfig().base_path;
   if (basePath === "/") {
     return path;
   }
 
-  return basePath + path;
+  // from iframe
+  if (getConfig().embed) {
+    return window.location.pathname.replace(/\/embed$/, "") + path;
+  }
+
+  return window.location.pathname + path;
 }
 
 function postOptions(data = null) {

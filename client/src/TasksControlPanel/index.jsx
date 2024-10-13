@@ -9,12 +9,7 @@ import {
   Input,
 } from "antd";
 import { useState } from "react";
-import {
-  InfoCircleTwoTone,
-  LinkOutlined,
-  ReloadOutlined,
-} from "@ant-design/icons";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams as useSearchParamsDom } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
 import {
@@ -24,8 +19,9 @@ import {
 } from "./buttons.jsx";
 
 import { TASK_STATUS, TASK_STATUSES_COLOR_SCHEME } from "../constants.js";
+import { InfoIcon, LinkIcon, ReloadIcon } from "../icons";
 import { getCall } from "../http";
-import { getConfig } from "../config.js";
+import { getConfig } from "../config";
 
 const StatusDescription = () => (
   <div>
@@ -91,7 +87,7 @@ const LogsLink = ({ taskName }) => {
   return (
     <a target="_blank" rel="noreferrer" href={logsUrl}>
       <Space>
-        <LinkOutlined /> Logs
+        <LinkIcon /> Logs
       </Space>
     </a>
   );
@@ -112,7 +108,7 @@ const TasksTable = ({ tasks, loading, refetch }) => {
           <Button
             type="primary"
             shape="circle"
-            icon={<ReloadOutlined />}
+            icon={<ReloadIcon />}
             size="small"
             loading={loading}
             onClick={() => refetch()}
@@ -130,7 +126,7 @@ const TasksTable = ({ tasks, loading, refetch }) => {
               title="Statuses description:"
               content={<StatusDescription />}
             >
-              <InfoCircleTwoTone />
+              <InfoIcon />
             </Popover>
           </Space>
         }
@@ -182,6 +178,26 @@ const filterTasks = (tasks, searchTerm) => {
     return tasks;
   }
   return tasks.filter((task) => task.name.includes(searchTerm || ""));
+};
+
+
+// Custom hook to read and update the search params with iframe-mode support.
+// If the app is not embedded, it will use the default useSearchParamsDom hook.
+// Otherwise, it will use/mutate the parent window location search params.
+const useSearchParams = () => {
+  const [searchParamsDom, setSearchParamsDom] = useSearchParamsDom();
+  if (!getConfig().embed) {
+    return [searchParamsDom, setSearchParamsDom];
+  }
+
+  const searchParams = new URLSearchParams(window.parent.location.search);
+  const setSearchParams = (fn) => {
+    const newParams = fn(searchParams);
+    window.parent.location.search = newParams.toString();
+  };
+
+  return [searchParams, setSearchParams];
+
 };
 
 export const TasksControlPanel = () => {
