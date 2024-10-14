@@ -4,6 +4,8 @@ UI for darq async task manager - https://github.com/seedofjoy/darq
 
 ## Installation
 
+[PyPI package](https://pypi.org/project/darq-ui/)
+
 ```bash
 pip install darq-ui
 ```
