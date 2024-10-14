@@ -21,6 +21,10 @@ DROP_TASKS_KEY = "darq:drop_tasks"
 PAUSE_TASKS_KEY = "darq:pause_tasks"
 
 
+class DarqTaskDroppedError(Exception):
+    pass
+
+
 @dataclass
 class TaskInfo:
     signature: str
@@ -156,3 +160,20 @@ class DarqHelper:
         started again."""
         assert self.darq_app.redis_pool
         await self.darq_app.redis_pool.hdel(DROP_TASKS_KEY, task_name)
+
+    async def maybe_drop_task(self, task_name: str) -> None:
+        """Check if task is in drop list and raise exception if it is.
+
+        This function should be called before worker starts processing task.
+        """
+        assert self.darq_app.redis_pool
+        if await self.is_task_in_droplist(task_name):
+            reason = await self.darq_app.redis_pool.hget(
+                DROP_TASKS_KEY, task_name
+            )
+            raise DarqTaskDroppedError(f"Task dropped: {reason}")
+
+
+async def maybe_drop_task(darq: Darq, task_name: str) -> None:
+    darq_helper = DarqHelper(darq)
+    await darq_helper.maybe_drop_task(task_name)

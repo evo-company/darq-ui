@@ -1,4 +1,4 @@
-UI for darq async task manager - https://github.com/seedofjoy/darq
+UI for darq async task manager - <https://github.com/seedofjoy/darq>
 
 # <img src="./docs/darq_ui.png" alt="Darq UI" width="800"/>
 
@@ -66,7 +66,7 @@ export const Tasks = () => {
 }
 ```
 
-### Logging link 
+### Logging link
 
 If you have a logging system (kibana for example), you can pass `logs_url` to `setup` function. One requirement is that the url should have the `${taskName}` placeholder which will be replaced with the task name.
 
@@ -88,6 +88,51 @@ may need to adjust it according to your kibana configuration.)
 ## Securing the UI
 
 Since darq-ui is a part of your application, and can run any task, you should consider protecting it with authorization middleware or firewall.
+
+## Dropping tasks
+
+Darq UI allows you to drop running tasks. You can only drop a task that is written to work in batches and calls itself at the end.
+
+> For now we can not drop currently running task, only the next one.
+
+```python
+BATCH_SIZE = 10
+
+@darq.task
+async def notify_users(last_id: int = 0) -> None:
+    users = await session.scalars(select(User).where(User.id > last_id).limit(BATCH_SIZE))
+    for user in users:
+        notify_user(user)
+
+    if len(users) == BATCH_SIZE:
+      await notify_users(users[-1].id)
+    else:
+      log.info("All users notified")
+```
+
+In this example, after you `drop` the task, on the next run worker won't run it again by raising an exception.
+
+In order to enable **task dropping**, you need to call special function from `darq_ui` lib in `on_job_prerun` darq callback.
+
+```python
+from darq.app import Darq
+from darq_ui.darq import maybe_drop_task
+
+darq = Darq(... on_job_prerun=on_job_prerun)
+
+async def on_job_prerun(
+    ctx: dict[str, Any],
+    arq_function: Any,
+    args: Sequence[Any],
+    kwargs: Mapping[str, Any],
+) -> None:
+    # your code here
+    await maybe_drop_task(darq, arq_function.name)
+```
+
+In the example above, `maybe_drop_task` will check if the task is in the drop list and if so, it will raise `DarqTaskDroppedError` exception.
+
+When you are ready, remove task from droplist in the UI and run task again.
 
 ## Examples
 
@@ -111,8 +156,8 @@ lets run-aiohttp
 
 ## Development
 
-* pdm package manager - https://pdm.fming.dev/
-* lets task runner - https://lets-cli.org
+* pdm package manager - <https://pdm.fming.dev/>
+* lets task runner - <https://lets-cli.org>
 
 ### Run client build
 
