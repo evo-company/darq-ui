@@ -128,8 +128,8 @@ lets build-ui
 lets build-ui-dev
 ```
 
-
 Now you can run the server and it will serve the UI from the `src/darq_ui/static` directory.
+
 ```bash
 lets run-fastapi
 ```
