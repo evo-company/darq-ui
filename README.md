@@ -114,19 +114,20 @@ lets run-aiohttp
 
 ### Run client build
 
-In root directory:
+In root directory run:
+
+`build-ui` will build production version of assets and copy them to `src/darq_ui/static` directory.
 
 ```bash
 lets build-ui
 ```
 
-This will build production version of assets and copy them to `src/darq_ui/static` directory.
+`build-ui-dev` will build and watch development version of assets and copy them to `src/darq_ui/static` directory.
 
 ```bash
 lets build-ui-dev
 ```
 
-This will build and watch development version of assets and copy them to `src/darq_ui/static` directory.
 
 Now you can run the server and it will serve the UI from the `src/darq_ui/static` directory.
 ```bash
