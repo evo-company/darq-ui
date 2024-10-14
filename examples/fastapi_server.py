@@ -52,6 +52,7 @@ def create_app() -> FastAPI:
         darq,
         base_path="/darq",
         logs_url="https://mylogserver.com/taskname=${taskName}",
+        embed=True,
     )
 
     log.info("Server api configured at http:0.0.0.0:3000/api endpoint")

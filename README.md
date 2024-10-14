@@ -43,6 +43,29 @@ You can pass the `base_path` parameter to the `setup` function in order to chang
 setup(app, darq, base_path="/my-path")
 ```
 
+You can disable the web UI by passing `web_ui=False` to the `setup` function (it can be usefull if you want to embed darq_ui and use it only that way).
+
+```python
+
+### Embeding
+
+If you already have a UI (admin UI for example) and you can embed darq-ui into it.
+
+```python
+setup(app, darq, base_path="/admin/darq", embed=True)
+```
+
+`embed=True` will enable special endpoint `/admin/darq/embed` (if you set `base_path="/admin/darq"`).
+
+Then you can use it in an iframe:
+
+```jsx
+export const Tasks = () => {
+  const url = "http://localhost:3000/admin/darq/embed";
+  return <iframe title='Darq UI' style={{ border: '0px' }} src={url} height='100%' width='100%' />;
+}
+```
+
 ### Logging link 
 
 If you have a logging system (kibana for example), you can pass `logs_url` to `setup` function. One requirement is that the url should have the `${taskName}` placeholder which will be replaced with the task name.
@@ -75,7 +98,7 @@ cd examples
 pdm install
 ```
 
-And then run the server:
+And then run the server from the repo root:
 
 ```bash
 lets run-fastapi 
@@ -90,6 +113,27 @@ lets run-aiohttp
 
 * pdm package manager - https://pdm.fming.dev/
 * lets task runner - https://lets-cli.org
+
+### Run client build
+
+In root directory:
+
+```bash
+lets build-ui
+```
+
+This will build production version of assets and copy them to `src/darq_ui/static` directory.
+
+```bash
+lets build-ui-dev
+```
+
+This will build and watch development version of assets and copy them to `src/darq_ui/static` directory.
+
+Now you can run the server and it will serve the UI from the `src/darq_ui/static` directory.
+```bash
+lets run-fastapi
+```
 
 ### Run linters, formatters and other checks
 

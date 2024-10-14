@@ -1,6 +1,5 @@
-import pkgutil
 import pathlib
-import json
+import dataclasses
 
 from darq.app import Darq
 from fastapi import FastAPI, Depends
@@ -11,13 +10,13 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.status import HTTP_404_NOT_FOUND
 
-from darq_ui.utils import DARQ_APP, DARQ_UI_CONFIG, DarqUIConfig
+from darq_ui.utils import DARQ_APP, DARQ_UI_CONFIG, DarqUIConfig, join_url
 from darq_ui.handlers import (
     get_tasks,
     run_task,
     drop_task,
     remove_task_from_droplist,
-    join_url,
+    get_index_page,
     error_response,
     ok_response,
     ErrorResult,
@@ -35,6 +34,10 @@ from typing import Annotated
 
 def get_darq_app(request: Request) -> Darq:
     return getattr(request.app, DARQ_APP)
+
+
+def get_darq_ui_config(request: Request) -> DarqUIConfig:
+    return getattr(request.app, DARQ_UI_CONFIG)
 
 
 class RunTask(BaseModel):
@@ -56,31 +59,28 @@ api_router = APIRouter()
 index_router = APIRouter()
 
 
-@index_router.get("/")
-async def index_handler(request: Request) -> HTMLResponse:
-    try:
-        page = pkgutil.get_data("darq_ui", "static/index.html")
-    except FileNotFoundError as e:
-        error = "No index.html found"
-        raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND,
-            detail=error,
-        ) from e
-
-    if not page:
+async def index_handler(
+    ui_config: DarqUIConfig = Depends(get_darq_ui_config),
+) -> HTMLResponse:
+    content = get_index_page(ui_config)
+    if not content:
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND,
             detail="No index.html found",
         )
+    return HTMLResponse(content)
 
-    ui_config: DarqUIConfig = getattr(request.app, DARQ_UI_CONFIG)
-    base_static_path = join_url(ui_config.base_path, "/static")
-    page = page.replace(
-        b"{{CONFIG}}", json.dumps(ui_config.to_dict()).encode("utf-8")
-    )
-    page = page.replace(b"{{DYNAMIC_BASE}}", base_static_path.encode("utf-8"))
 
-    return HTMLResponse(page.decode("utf-8"))
+async def embed_handler(
+    ui_config: DarqUIConfig = Depends(get_darq_ui_config),
+) -> HTMLResponse:
+    content = get_index_page(dataclasses.replace(ui_config, embed=True))
+    if not content:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail="No index.html found",
+        )
+    return HTMLResponse(content)
 
 
 @api_router.get("/tasks")
@@ -177,23 +177,43 @@ def setup(
     darq: Darq,
     base_path: str = "/darq",
     logs_url: str | None = None,
+    web_ui: bool = True,
+    embed: bool = False,
 ) -> None:
+    """Setup Darq UI in FastAPI application.
+
+    :param app: FastAPI application
+    :param darq: Darq instance
+    :param base_path: base path for Darq UI.
+        All api endpoints will be mounted under this path.
+        Static files will be mounted under base_path + "/static".
+    :param logs_url: URL to logs
+    :param web_ui: enable web UI endpoint
+    :param embed: enable /embed endpoint (for iframes)
+    """
+    if web_ui:
+        index_router.add_api_route(base_path, endpoint=index_handler)
+    if embed:
+        index_router.add_api_route(
+            join_url(base_path, "/embed"), endpoint=embed_handler
+        )
+
+    if index_router.routes:
+        app.include_router(index_router)
+
     app.include_router(api_router, prefix=join_url(base_path, "/api"))
-    app.include_router(
-        index_router, prefix="" if base_path == "/" else base_path
-    )
 
-    here = pathlib.Path(__file__).parents[1]
-
-    app.mount(
-        join_url(base_path, "/static"),
-        StaticFiles(
-            directory=here / "static",
-            html=True,
-            check_dir=True,
-        ),
-        name="static",
-    )
+    if web_ui or embed:
+        here = pathlib.Path(__file__).parents[1]
+        app.mount(
+            join_url(base_path, "/static"),
+            StaticFiles(
+                directory=here / "static",
+                html=True,
+                check_dir=True,
+            ),
+            name="static",
+        )
 
     setattr(app, DARQ_APP, darq)
     setattr(

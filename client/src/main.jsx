@@ -1,9 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { App } from "./App";
+import { App, AppEmbed } from "./App";
+import { getConfig } from "./config";
+
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
+    {getConfig().embed ? <AppEmbed /> : <App />}
   </StrictMode>,
 );

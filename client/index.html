@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>
       window.__dynamic_base__ = "{{DYNAMIC_BASE}}";
+      if (!window.location.pathname.startsWith(window.__dynamic_base__)) {
+        // Update static path when the app is served from a subpath different from the base_path
+        let base = window.location.pathname.replace(/\/embed$/, "").replace(/\/$/, "");
+        window.__dynamic_base__ = base + "/static";
+      }
     </script>
     <link rel="icon" type="image/x-icon" href="/src/favicon.ico" />
     <title>Darq UI</title>

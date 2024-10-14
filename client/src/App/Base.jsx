@@ -1,23 +1,12 @@
-import { Layout, Typography, Skeleton } from "antd";
-import { useState } from "react";
+import { Layout, Typography } from "antd";
 
-import { Menu } from "./Menu";
 import { Routing } from "./Routing";
 
-const { Header, Content, Sider } = Layout;
+import { TasksControlPanel } from "../TasksControlPanel";
 
-const SIDEBAR_KEY = "darq_ui:sidebar";
+const { Header, Content } = Layout;
 
 export const Base = () => {
-  const [collapsed, setCollapsed] = useState(
-    window.localStorage.getItem(SIDEBAR_KEY) === "true",
-  );
-  const onCollapse = (isCollapsed) => {
-    setCollapsed(isCollapsed);
-    window.localStorage.setItem(SIDEBAR_KEY, isCollapsed);
-  };
-
-  const loading = false;
   return (
     <Layout
       style={{
@@ -36,18 +25,23 @@ export const Base = () => {
         </Typography.Title>
       </Header>
       <Layout>
-        <Sider
-          collapsible
-          collapsed={collapsed}
-          width={250}
-          onCollapse={onCollapse}
-        >
-          <Menu />
-        </Sider>
         <Content style={{ padding: 24 }}>
-          {loading ? <Skeleton /> : <Routing />}
+          <Routing />
         </Content>
       </Layout>
+    </Layout>
+  );
+};
+
+
+export const BaseEmbed = () => {
+  return (
+    <Layout
+      style={{
+        minHeight: "100vh",
+      }}
+    >
+      <TasksControlPanel />
     </Layout>
   );
 };

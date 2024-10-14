@@ -1,5 +1,6 @@
 import json
 import logging
+import pkgutil
 
 from typing import Generic, TypeVar
 from dataclasses import dataclass
@@ -8,6 +9,7 @@ from pydantic import BaseModel
 from darq.app import Darq
 from darq_ui.darq import Task, TaskStatus
 from darq_ui.darq import DarqHelper
+from darq_ui.utils import DarqUIConfig, join_url
 
 log = logging.getLogger(__name__)
 
@@ -81,9 +83,22 @@ class RunTaskResult:
     task_id: str
 
 
-def join_url(base_url: str, path: str) -> str:
-    """Join base url and path maintaining slashes."""
-    return f"{base_url.rstrip('/')}/{path.lstrip('/')}"
+def get_index_page(ui_config: DarqUIConfig) -> str | None:
+    try:
+        page = pkgutil.get_data("darq_ui", "static/index.html")
+    except FileNotFoundError:
+        return None
+
+    if not page:
+        return None
+
+    static_path = join_url(ui_config.base_path, "/static")
+    config_str = json.dumps(ui_config.to_dict())
+
+    page = page.replace(b"{{CONFIG}}", config_str.encode("utf-8"))
+    page = page.replace(b"{{DYNAMIC_BASE}}", static_path.encode("utf-8"))
+
+    return page.decode("utf-8")
 
 
 async def get_tasks(darq_app: Darq) -> list[Task]:

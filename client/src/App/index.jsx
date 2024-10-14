@@ -1,1 +1,1 @@
-export { App } from "./App.jsx";
+export { App, AppEmbed } from "./App.jsx";

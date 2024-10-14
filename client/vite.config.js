@@ -5,12 +5,9 @@ import { dynamicBase } from 'vite-plugin-dynamic-base'
 
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  server: {
-    port: 3001,
-    proxy: {
-      "/api": "http://localhost:3000",
-    },
+export default defineConfig(({ mode }) => ({
+  build: {
+    minify: mode === 'production',
   },
   base: "/__dynamic_base__/",
   plugins: [
@@ -31,4 +28,4 @@ export default defineConfig({
       ],
     }),
   ],
-});
+}));

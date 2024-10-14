@@ -11,6 +11,16 @@ commands:
     work_dir: client
     cmd: npm run build-dev-watch
 
+  run-fastapi:
+    description: Run example fastapi server
+    work_dir: examples
+    cmd: pdm run fastapi-server
+
+  run-aiohttp:
+    description: Run example aiohttp server
+    work_dir: examples
+    cmd: pdm run aiohttp-server
+
   release:
     description: |
       Update version in src/darq_ui/__init__.py
