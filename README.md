@@ -1,6 +1,6 @@
-# darq-ui
-
 UI for darq async task manager - https://github.com/seedofjoy/darq
+
+# <img src="./docs/darq_ui.png" alt="Darq UI" width="800"/>
 
 ## Installation
 
