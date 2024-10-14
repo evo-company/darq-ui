@@ -191,6 +191,8 @@ def setup(
     :param web_ui: enable web UI endpoint
     :param embed: enable /embed endpoint (for iframes)
     """
+
+    # setup fastapi
     if web_ui:
         index_router.add_api_route(base_path, endpoint=index_handler)
     if embed:
