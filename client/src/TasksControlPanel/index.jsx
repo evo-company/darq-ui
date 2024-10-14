@@ -118,6 +118,7 @@ const TasksTable = ({ tasks, loading, refetch }) => {
     >
       <Table.Column title="Name" dataIndex="name" />
       <Table.Column
+        width={100}
         title={
           <Space align="center">
             Status
@@ -138,6 +139,7 @@ const TasksTable = ({ tasks, loading, refetch }) => {
         )}
       />
       <Table.Column
+        width={80}
         title={"Logs"}
         dataIndex={"name"}
         render={(name) => <LogsLink taskName={name} />}
@@ -180,7 +182,6 @@ const filterTasks = (tasks, searchTerm) => {
   return tasks.filter((task) => task.name.includes(searchTerm || ""));
 };
 
-
 // Custom hook to read and update the search params with iframe-mode support.
 // If the app is not embedded, it will use the default useSearchParamsDom hook.
 // Otherwise, it will use/mutate the parent window location search params.
@@ -197,7 +198,6 @@ const useSearchParams = () => {
   };
 
   return [searchParams, setSearchParams];
-
 };
 
 export const TasksControlPanel = () => {

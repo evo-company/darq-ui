@@ -3,9 +3,6 @@ import { createRoot } from "react-dom/client";
 import { App, AppEmbed } from "./App";
 import { getConfig } from "./config";
 
-
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    {getConfig().embed ? <AppEmbed /> : <App />}
-  </StrictMode>,
+  <StrictMode>{getConfig().embed ? <AppEmbed /> : <App />}</StrictMode>,
 );

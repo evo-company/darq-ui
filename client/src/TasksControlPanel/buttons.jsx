@@ -223,7 +223,6 @@ const ARGS_TABS = {
 };
 
 const ArgsView = ({ task, onClick, args, kwargs, setArgs, setKwargs }) => {
-
   const [argsTab, setArgsTab] = useState(ARGS_TABS.JSON);
   return (
     <Tabs
@@ -422,13 +421,15 @@ export const RemoveTaskFromDroplistButton = ({ taskName }) => {
   });
 
   return (
-    <Button
-      type="primary"
-      danger
-      loading={isPending}
-      onClick={() => mutate({ task_name: taskName })}
-    >
-      Remove from droplist
-    </Button>
+    <Tooltip title="Remove task from droplist. Task can be run again after this">
+      <Button
+        type="primary"
+        style={{ background: "orange" }}
+        loading={isPending}
+        onClick={() => mutate({ task_name: taskName })}
+      >
+        Undrop
+      </Button>
+    </Tooltip>
   );
 };

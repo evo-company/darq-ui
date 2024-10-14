@@ -33,7 +33,6 @@ export const Base = () => {
   );
 };
 
-
 export const BaseEmbed = () => {
   return (
     <Layout
