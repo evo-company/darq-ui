@@ -45,11 +45,9 @@ setup(app, darq, base_path="/my-path")
 
 You can disable the web UI by passing `web_ui=False` to the `setup` function (it can be usefull if you want to embed darq_ui and use it only that way).
 
-```python
+### Embedding
 
-### Embeding
-
-If you already have a UI (admin UI for example) and you can embed darq-ui into it.
+If you already have a UI (admin UI for example) and you can embed darq-ui into it using `<iframe />`.
 
 ```python
 setup(app, darq, base_path="/admin/darq", embed=True)
