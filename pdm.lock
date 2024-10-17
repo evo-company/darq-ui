@@ -5,7 +5,7 @@
 groups = ["default", "aiohttp", "dev", "fastapi"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:c3df0198ce8e2cba100d9b2dbaa317dc170cc901e96e7f6192228ae8e4321da3"
+content_hash = "sha256:0c3e52bdeb48b67dc412e77b8fc5e404c396a6ea614268241adaa8d7d29d22dd"
 
 [[metadata.targets]]
 requires_python = ">=3.10"
@@ -119,7 +119,7 @@ name = "annotated-types"
 version = "0.7.0"
 requires_python = ">=3.8"
 summary = "Reusable constraint types to use with typing.Annotated"
-groups = ["fastapi"]
+groups = ["default", "fastapi"]
 dependencies = [
     "typing-extensions>=4.0.0; python_version < \"3.9\"",
 ]
@@ -507,7 +507,7 @@ name = "pydantic"
 version = "2.9.2"
 requires_python = ">=3.8"
 summary = "Data validation using Python type hints"
-groups = ["fastapi"]
+groups = ["default", "fastapi"]
 dependencies = [
     "annotated-types>=0.6.0",
     "pydantic-core==2.23.4",
@@ -524,7 +524,7 @@ name = "pydantic-core"
 version = "2.23.4"
 requires_python = ">=3.8"
 summary = "Core functionality for Pydantic validation and serialization"
-groups = ["fastapi"]
+groups = ["default", "fastapi"]
 dependencies = [
     "typing-extensions!=4.7.0,>=4.6.0",
 ]
@@ -658,7 +658,7 @@ name = "typing-extensions"
 version = "4.12.2"
 requires_python = ">=3.8"
 summary = "Backported and Experimental Type Hints for Python 3.8+"
-groups = ["aiohttp", "dev", "fastapi"]
+groups = ["default", "aiohttp", "dev", "fastapi"]
 files = [
     {file = "typing_extensions-4.12.2-py3-none-any.whl", hash = "sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d"},
     {file = "typing_extensions-4.12.2.tar.gz", hash = "sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8"},
