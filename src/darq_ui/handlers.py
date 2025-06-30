@@ -1,14 +1,13 @@
 import json
 import logging
 import pkgutil
-
-from typing import Generic, TypeVar
 from dataclasses import dataclass
-from pydantic import BaseModel
+from typing import Generic, TypeVar
 
 from darq.app import Darq
-from darq_ui.darq import Task, TaskStatus
-from darq_ui.darq import DarqHelper
+from pydantic import BaseModel
+
+from darq_ui.darq import DarqHelper, Task, TaskStatus
 from darq_ui.utils import DarqUIConfig, join_url
 
 log = logging.getLogger(__name__)
@@ -52,6 +51,7 @@ class TaskBody(BaseModel):
     docstring: str | None
     status: TaskStatus | None
     dropped_reason: str | None
+    queue: str | None
 
     class Config:
         use_enum_values = True
@@ -101,9 +101,12 @@ def get_index_page(ui_config: DarqUIConfig) -> str | None:
     return page.decode("utf-8")
 
 
-async def get_tasks(darq_app: Darq) -> list[Task]:
+async def get_tasks(
+    darq_app: Darq,
+    queues: list[str] | None = None,
+) -> list[Task]:
     darq_helper = DarqHelper(darq_app)
-    return await darq_helper.get_darq_tasks_for_admin()
+    return await darq_helper.get_darq_tasks_for_admin(queues)
 
 
 async def run_task(

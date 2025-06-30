@@ -64,6 +64,7 @@ const formatDoc = (doc) =>
 const TaskInfo = ({ task }) => (
   <Space direction="vertical">
     <div>Status: {task.status || "N/A"}</div>
+    <div>Queue: {task.queue || "N/A"}</div>
     <div>
       Signature: <pre>{formatSignature(task.signature)}</pre>
     </div>
