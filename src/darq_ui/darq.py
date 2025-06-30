@@ -1,18 +1,17 @@
+import asyncio
 import inspect
 import logging
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import cast
 
 from darq.app import Darq
-from darq.jobs import (
-    DeserializationError,
-    JobDef,
-)
+from darq.jobs import DeserializationError, JobDef
 from darq.types import DarqTask
 from darq.worker import Task as WorkerTask
 
+from darq_ui.utils import DEFAULT_QUEUES
 
 log = logging.getLogger(__name__)
 
@@ -31,6 +30,12 @@ class TaskInfo:
     doc: str
 
 
+@dataclass
+class JobDefWithQueue:
+    queue: str
+    job: JobDef
+
+
 class TaskStatus(Enum):
     RUNNING = "running"
     DROPPED = "dropped"
@@ -43,6 +48,7 @@ class Task:
     enqueue_time: str | None
     signature: str | None
     doc: str | None
+    queue: str | None = None
     dropped_reason: str | None = None
 
 
@@ -93,25 +99,53 @@ class DarqHelper:
 
         return task_info
 
-    async def get_darq_tasks_for_admin(self) -> list[Task]:
+    async def get_darq_tasks_for_admin(
+        self,
+        queues: list[str] | None = None,
+    ) -> list[Task]:
         assert self.darq_app.redis_pool
         job_names = self.get_all_registered_jobs()
 
-        queued_jobs: list = []
+        if queues is None:
+            queues = DEFAULT_QUEUES
 
-        try:
-            queued_jobs = await self.darq_app.redis_pool.queued_jobs()
-        except DeserializationError:
-            log.exception("Can not get darq queued jobs")
+        async def get_queued_jobs(queue: str) -> list[JobDefWithQueue]:
+            try:
+                jobs = await self.darq_app.redis_pool.queued_jobs(
+                    queue_name=queue
+                )
+                return [JobDefWithQueue(queue, j) for j in jobs]
+            except DeserializationError:
+                log.exception(
+                    "Can not get darq queued jobs for queue %s",
+                    queue,
+                )
+                return []
 
-        queued_jobs_map = {job.function: job for job in queued_jobs}
+        queued_jobs = await asyncio.gather(
+            *[get_queued_jobs(q) for q in queues],
+            return_exceptions=True,
+        )
+
+        queued_jobs_map: dict[str, JobDefWithQueue] = {}
+        for res in queued_jobs:
+            if isinstance(res, BaseException):
+                raise res
+
+            for j in res:
+                queued_jobs_map[j.job.function] = j
 
         tasks_info = self.get_darq_tasks_info()
         dropped_tasks = await self.get_drop_tasks()
 
         tasks = []
         for job_name in job_names:
-            job_def: JobDef | None = queued_jobs_map.get(job_name)
+            job_def: JobDef | None = None
+            queue: str | None = None
+            if j := queued_jobs_map.get(job_name):
+                job_def = j.job
+                queue = j.queue
+
             task_info = tasks_info[job_name]
 
             status = None
@@ -124,11 +158,12 @@ class DarqHelper:
             task = Task(
                 name=job_name,
                 status=status,
-                enqueue_time=job_def.enqueue_time.isoformat()
-                if job_def
-                else None,
+                enqueue_time=(
+                    job_def.enqueue_time.isoformat() if job_def else None
+                ),
                 signature=task_info.signature,
                 doc=task_info.doc,
+                queue=queue,
                 dropped_reason=dropped_tasks.get(job_name),
             )
             tasks.append(task)

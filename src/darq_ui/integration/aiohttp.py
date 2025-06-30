@@ -1,31 +1,35 @@
 import dataclasses
 import pathlib
+from json import JSONDecodeError
 from typing import Any, Callable, Coroutine
 
-from darq.app import Darq
-
 from aiohttp import web
-from aiohttp.web_response import json_response
-
-from json import JSONDecodeError
 from aiohttp.web_exceptions import HTTPNotAcceptable
+from aiohttp.web_response import json_response
+from darq.app import Darq
 from pydantic import BaseModel
 
-from darq_ui.utils import DARQ_APP, DARQ_UI_CONFIG, DarqUIConfig, join_url
 from darq_ui.handlers import (
-    get_index_page,
-    get_tasks,
-    run_task,
-    error_response,
-    ok_response,
-    Success,
-    Failure,
-    drop_task,
-    remove_task_from_droplist,
     ErrorResult,
+    Failure,
+    RunTaskResponse,
+    Success,
     TaskBody,
     TasksResponse,
-    RunTaskResponse,
+    drop_task,
+    error_response,
+    get_index_page,
+    get_tasks,
+    ok_response,
+    remove_task_from_droplist,
+    run_task,
+)
+from darq_ui.utils import (
+    DARQ_APP,
+    DARQ_UI_CONFIG,
+    DEFAULT_QUEUES,
+    DarqUIConfig,
+    join_url,
 )
 
 
@@ -79,7 +83,8 @@ async def embed_handler(request: web.Request) -> web.Response:
 @response_adapter
 async def get_tasks_handler(request: web.Request) -> TasksResponse:
     darq_app = get_darq_app(request)
-    tasks = await get_tasks(darq_app)
+    ui_config: DarqUIConfig = request.app[DARQ_UI_CONFIG]
+    tasks = await get_tasks(darq_app, ui_config.queues)
 
     return TasksResponse(
         tasks=[
@@ -88,6 +93,7 @@ async def get_tasks_handler(request: web.Request) -> TasksResponse:
                 signature=task.signature,
                 docstring=task.doc,
                 status=task.status,
+                queue=task.queue,
                 dropped_reason=task.dropped_reason,
             )
             for task in tasks
@@ -184,15 +190,17 @@ def setup(
     logs_url: str | None = None,
     web_ui: bool = True,
     embed: bool = False,
+    queues: list[str] | None = None,
 ) -> None:
     """Setup Darq UI in aiohttp application.
 
-    :param app: FastAPI application
+    :param app: aiohttp application
     :param darq: Darq instance
     :param base_path: base path for Darq UI
     :param logs_url: URL to logs
     :param web_ui: enable web UI endpoint
     :param embed: enable /embed endpoint (for iframes)
+    :param queues: list of queues to monitor
     """
     if web_ui:
         app.router.add_get(base_path, index_handler)
@@ -215,5 +223,12 @@ def setup(
             [web.static(join_url(base_path, "/static"), here / "static")]
         )
 
+    if queues is None:
+        queues = DEFAULT_QUEUES
+
     app[DARQ_APP] = darq
-    app[DARQ_UI_CONFIG] = DarqUIConfig(base_path=base_path, logs_url=logs_url)
+    app[DARQ_UI_CONFIG] = DarqUIConfig(
+        base_path=base_path,
+        logs_url=logs_url,
+        queues=queues,
+    )

@@ -1,35 +1,38 @@
-import pathlib
 import dataclasses
+import pathlib
+from typing import Annotated
 
 from darq.app import Darq
-from fastapi import FastAPI, Depends
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-
 from pydantic import BaseModel
 from starlette.status import HTTP_404_NOT_FOUND
 
-from darq_ui.utils import DARQ_APP, DARQ_UI_CONFIG, DarqUIConfig, join_url
 from darq_ui.handlers import (
-    get_tasks,
-    run_task,
-    drop_task,
-    remove_task_from_droplist,
-    get_index_page,
-    error_response,
-    ok_response,
+    DropTaskResponse,
     ErrorResult,
+    Failure,
+    RemoveTaskFromDroplistResponse,
+    RunTaskResponse,
+    Success,
     TaskBody,
     TasksResponse,
-    RunTaskResponse,
-    DropTaskResponse,
-    RemoveTaskFromDroplistResponse,
-    Success,
-    Failure,
+    drop_task,
+    error_response,
+    get_index_page,
+    get_tasks,
+    ok_response,
+    remove_task_from_droplist,
+    run_task,
 )
-
-from typing import Annotated
+from darq_ui.utils import (
+    DARQ_APP,
+    DARQ_UI_CONFIG,
+    DEFAULT_QUEUES,
+    DarqUIConfig,
+    join_url,
+)
 
 
 def get_darq_app(request: Request) -> Darq:
@@ -86,8 +89,9 @@ async def embed_handler(
 @api_router.get("/tasks")
 async def get_tasks_handler(
     darq_app: Annotated[Darq, Depends(get_darq_app)],
+    ui_config: Annotated[DarqUIConfig, Depends(get_darq_ui_config)],
 ) -> TasksResponse:
-    tasks = await get_tasks(darq_app)
+    tasks = await get_tasks(darq_app, ui_config.queues)
     return TasksResponse(
         tasks=[
             TaskBody(
@@ -95,6 +99,7 @@ async def get_tasks_handler(
                 signature=task.signature,
                 docstring=task.doc,
                 status=task.status,
+                queue=task.queue,
                 dropped_reason=task.dropped_reason,
             )
             for task in tasks
@@ -179,6 +184,7 @@ def setup(
     logs_url: str | None = None,
     web_ui: bool = True,
     embed: bool = False,
+    queues: list[str] | None = None,
 ) -> None:
     """Setup Darq UI in FastAPI application.
 
@@ -190,6 +196,7 @@ def setup(
     :param logs_url: URL to logs
     :param web_ui: enable web UI endpoint
     :param embed: enable /embed endpoint (for iframes)
+    :param queues: list of queues to monitor
     """
 
     # setup fastapi
@@ -217,9 +224,12 @@ def setup(
             name="static",
         )
 
+    if queues is None:
+        queues = DEFAULT_QUEUES
+
     setattr(app, DARQ_APP, darq)
     setattr(
         app,
         DARQ_UI_CONFIG,
-        DarqUIConfig(base_path=base_path, logs_url=logs_url),
+        DarqUIConfig(base_path=base_path, logs_url=logs_url, queues=queues),
     )
